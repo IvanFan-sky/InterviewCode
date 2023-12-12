@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fanlian.interviewcode.mapper.UserTagMapper">
+  <resultMap id="BaseResultMap" type="com.fanlian.interviewcode.model.UserTag">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="user_id" jdbcType="INTEGER" property="userId" />
+    <result column="tag_id" jdbcType="INTEGER" property="tagId" />
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    user_tag_id, user_id, tag_id, created_at, updated_at
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from user_tag
+    where user_tag_id = #{userTagId,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from user_tag
+    where user_tag_id = #{userTagId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" keyColumn="user_tag_id" keyProperty="userTagId" parameterType="com.fanlian.interviewcode.model.UserTag" useGeneratedKeys="true">
+    insert into user_tag (user_id, tag_id, created_at, 
+      updated_at)
+    values (#{userId,jdbcType=INTEGER}, #{tagId,jdbcType=INTEGER}, #{createdAt,jdbcType=TIMESTAMP}, 
+      #{updatedAt,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" keyColumn="user_tag_id" keyProperty="userTagId" parameterType="com.fanlian.interviewcode.model.UserTag" useGeneratedKeys="true">
+    insert into user_tag
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="tagId != null">
+        tag_id,
+      </if>
+      <if test="createdAt != null">
+        created_at,
+      </if>
+      <if test="updatedAt != null">
+        updated_at,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="userId != null">
+        #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="tagId != null">
+        #{tagId,jdbcType=INTEGER},
+      </if>
+      <if test="createdAt != null">
+        #{createdAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedAt != null">
+        #{updatedAt,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+
+
+
+  <update id="updateByPrimaryKeySelective" parameterType="com.fanlian.interviewcode.model.UserTag">
+    update user_tag
+    <set>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="tagId != null">
+        tag_id = #{tagId,jdbcType=INTEGER},
+      </if>
+      <if test="createdAt != null">
+        created_at = #{createdAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedAt != null">
+        updated_at = #{updatedAt,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where user_tag_id = #{userTagId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.fanlian.interviewcode.model.UserTag">
+    update user_tag
+    set user_id = #{userId,jdbcType=INTEGER},
+      tag_id = #{tagId,jdbcType=INTEGER},
+      created_at = #{createdAt,jdbcType=TIMESTAMP},
+      updated_at = #{updatedAt,jdbcType=TIMESTAMP}
+    where user_tag_id = #{userTagId,jdbcType=INTEGER}
+  </update>
+
+
+  <insert id="insertTagForUser">
+    insert into user_tag (user_id,tag_id)
+    values (#{userId},(select tag_id from tag where tag_neme={#tagName}))
+  </insert>
+
+
+</mapper>

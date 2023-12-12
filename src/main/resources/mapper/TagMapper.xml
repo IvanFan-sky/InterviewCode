@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fanlian.interviewcode.mapper.TagMapper">
+  <resultMap id="BaseResultMap" type="com.fanlian.interviewcode.model.Tag">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="tag_name" jdbcType="VARCHAR" property="tagName" />
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, tag_name, created_at, updated_at
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from tag
+    where tag_id = #{tagId,jdbcType=INTEGER}
+  </select>
+
+
+
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from tag
+    where tag_id = #{tagId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" keyColumn="tag_id" keyProperty="tagId" parameterType="com.fanlian.interviewcode.model.Tag" useGeneratedKeys="true">
+    insert into tag (tag_name, created_at, updated_at
+      )
+    values (#{tagName,jdbcType=VARCHAR}, #{createdAt,jdbcType=TIMESTAMP}, #{updatedAt,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" keyColumn="tag_id" keyProperty="tagId" parameterType="com.fanlian.interviewcode.model.Tag" useGeneratedKeys="true">
+    insert into tag
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="tagName != null">
+        tag_name,
+      </if>
+      <if test="createdAt != null">
+        created_at,
+      </if>
+      <if test="updatedAt != null">
+        updated_at,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="tagName != null">
+        #{tagName,jdbcType=VARCHAR},
+      </if>
+      <if test="createdAt != null">
+        #{createdAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedAt != null">
+        #{updatedAt,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+
+  <insert id="insertTags"  parameterType="java.util.List" >
+    INSERT INTO tag (tag_name,created_at)
+    VALUES
+    <foreach collection="list" index="index" item="tag" separator=",">
+      (#{tag.tagName},#{tag.createdAt})
+    </foreach>
+  </insert>
+
+
+  <update id="updateByPrimaryKeySelective" parameterType="com.fanlian.interviewcode.model.Tag">
+    update tag
+    <set>
+      <if test="tagName != null">
+        tag_name = #{tagName,jdbcType=VARCHAR},
+      </if>
+      <if test="createdAt != null">
+        created_at = #{createdAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedAt != null">
+        updated_at = #{updatedAt,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where tag_id = #{tagId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.fanlian.interviewcode.model.Tag">
+    update tag
+    set tag_name = #{tagName,jdbcType=VARCHAR},
+      created_at = #{createdAt,jdbcType=TIMESTAMP},
+      updated_at = #{updatedAt,jdbcType=TIMESTAMP}
+    where tag_id = #{tagId,jdbcType=INTEGER}
+  </update>
+
+
+  <select id="getTagByName" resultType="com.fanlian.interviewcode.model.Tag">
+    select <include refid="Base_Column_List" />
+        from tag
+        where tag_name={#tagName}
+
+  </select>
+  <select id="queryAll" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List" />
+    from tag;
+  </select>
+
+</mapper>

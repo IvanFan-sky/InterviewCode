@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fanlian.interviewcode.mapper.UserMapper">
+  <resultMap id="BaseResultMap" type="com.fanlian.interviewcode.model.User">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="email" jdbcType="VARCHAR" property="email" />
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
+  </resultMap>
+
+  <resultMap id="UserWithTagsResultMap" type="com.fanlian.interviewcode.model.User">
+    <id column="user_id" jdbcType="INTEGER" property="id" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="email" jdbcType="VARCHAR" property="email" />
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
+    <collection property="tags" ofType="com.fanlian.interviewcode.model.Tag" javaType="java.util.Set">
+      <id column="tag_id" jdbcType="INTEGER" property="id" />
+      <result column="tag_name" jdbcType="VARCHAR" property="tagName" />
+    </collection>
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, username, `password`, email, created_at, updated_at
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from user
+    where user_id = #{userId,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from user
+    where user_id = #{userId,jdbcType=INTEGER}
+  </delete>
+
+  <delete id="removeTags">
+    delete ut from user_tag ut
+    join tag t on ut.tag_id = t.id
+    where ut.user_id = #{userId}
+    and tag_name in
+    <foreach collection="removeTags" item="tagName" open="(" separator="," close=")">
+      #{tagName}
+    </foreach>
+
+  </delete>
+
+
+  <insert id="insert" keyColumn="user_id" keyProperty="userId" parameterType="com.fanlian.interviewcode.model.User" useGeneratedKeys="true">
+    insert into user (username, `password`, email, 
+      created_at, updated_at)
+    values (#{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, 
+      #{createdAt,jdbcType=TIMESTAMP}, #{updatedAt,jdbcType=TIMESTAMP})
+  </insert>
+
+  <insert id="insertSelective" keyColumn="user_id" keyProperty="userId" parameterType="com.fanlian.interviewcode.model.User" useGeneratedKeys="true">
+    insert into user
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="username != null">
+        username,
+      </if>
+      <if test="password != null">
+        `password`,
+      </if>
+      <if test="email != null">
+        email,
+      </if>
+      <if test="createdAt != null">
+        created_at,
+      </if>
+      <if test="updatedAt != null">
+        updated_at,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="username != null">
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null">
+        #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null">
+        #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="createdAt != null">
+        #{createdAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedAt != null">
+        #{updatedAt,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <insert id="add" keyColumn="user_id" keyProperty="userId" parameterType="com.fanlian.interviewcode.model.User" useGeneratedKeys="true">
+    insert into user (username, `password`, email,
+                      created_at, updated_at)
+    values (#{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR},
+            #{createdAt,jdbcType=TIMESTAMP}, #{updatedAt,jdbcType=TIMESTAMP})
+  </insert>
+
+  <insert id="insertUsers"  parameterType="java.util.List" >
+    INSERT INTO user (username,password)
+    VALUES
+    <foreach collection="list" index="index" item="user" separator=",">
+      (#{user.username},#{user.password})
+    </foreach>
+  </insert>
+
+    <insert id="addTags">
+      insert into user_tag(user_id,tag_id)
+      values
+      <foreach collection="addTags" index="index" item="tagName" separator=",">
+        (#{userId},
+           (select id as tag_id from tag where tag_name= #{tagName})
+        )
+      </foreach>
+    </insert>
+
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.fanlian.interviewcode.model.User">
+    update user
+    <set>
+      <if test="username != null">
+        username = #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null">
+        `password` = #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null">
+        email = #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="createdAt != null">
+        created_at = #{createdAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedAt != null">
+        updated_at = #{updatedAt,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where user_id = #{userId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.fanlian.interviewcode.model.User">
+    update user
+    set username = #{username,jdbcType=VARCHAR},
+      `password` = #{password,jdbcType=VARCHAR},
+      email = #{email,jdbcType=VARCHAR},
+      created_at = #{createdAt,jdbcType=TIMESTAMP},
+      updated_at = #{updatedAt,jdbcType=TIMESTAMP}
+    where user_id = #{userId,jdbcType=INTEGER}
+  </update>
+
+  <select id="queryAll" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List" /> from user
+  </select>
+
+  <select id="getUserById" resultType="com.fanlian.interviewcode.model.User">
+    select user_id from user;
+  </select>
+
+  <select id="queryUserWithTagsById" parameterType="java.lang.Integer" resultMap="UserWithTagsResultMap">
+    SELECT u.id as user_id ,u.username,u.password,u.email,u.created_at,u.updated_at,t.id as tag_id,t.tag_name
+    FROM user u
+           LEFT JOIN user_tag ut ON u.id = ut.user_id
+           LEFT JOIN tag t ON ut.tag_id = t.id
+    WHERE u.id = #{userId};
+  </select>
+  <select id="queryUserWithTagAll" resultMap="UserWithTagsResultMap">
+    select u.id as user_id,u.username,u.password,u.email,u.created_at,u.updated_at,t.id as tag_id,t.tag_name
+    from user u
+        left join user_tag ut on u.id=ut.user_id
+        left join tag t on ut.tag_id=t.id
+
+  </select>
+
+
+</mapper>

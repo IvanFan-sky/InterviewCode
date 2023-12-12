@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/interview_code?serverTimezone=GMT%2B8&useSSL=true
+    username: root
+    password: root
+
+logging:
+  config: classpath:logback.xml
+  level:
+    com:
+      fanlian:
+        interviewcode:
+          mapper: debug
+
+
+mybatis:
+  mapper-locations:
+    # 映射器 XML 文件的路径，使用通配符匹配多个文件
+    - classpath:/mapper/*.xml
+
+pagehelper:
+  params: count=countSql #用于从对象中根据属性名取值，可以配置pageNum，pageSize，count 不用配置映射的默认值。
+  reasonable: true #当该参数设置为 true 时，pageNum<=0 时会查询第一页， pageNum>pages（超过总数时），会查询最后一页。默认false 时，直接根据参数进行查询。
+  support-methods-arguments: true #支持通过 Mapper 接口参数来传递分页参数
+  helperDialect: mysql #指定分页插件使用mysql方言,分页插件会自动检测当前的数据库链接，自动选择合适的分页方式。
