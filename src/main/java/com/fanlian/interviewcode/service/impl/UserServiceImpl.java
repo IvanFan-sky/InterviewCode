@@ -84,21 +84,20 @@ public class UserServiceImpl implements UserService {
     public void addTags(Integer userId, List<String> addTags) {
         // 查询用户
         List<User> users = userMapper.queryUserWithTagsById(userId);
-        List<String> userTagList = new ArrayList<>();
-        for (User u : users) {
-            Set<Tag> uTags = u.getTags();
-            if (CollectionUtil.isEmpty(uTags)) {
-                userMapper.addTags(userId, addTags);
-            } else {
-                userTagList.addAll(uTags.stream().map(Tag::getTagName).collect(Collectors.toList()));
-            }
+        if (CollectionUtil.isEmpty(users)) {
+            ThrowUtils.throwIf(true, ErrorCode.NOT_FOUND_ERROR, "该用户不存在");
         }
-        Collection<String> inTag = CollectionUtil.intersection(userTagList, addTags);
-        addTags.removeAll(inTag);
-        // 检查是否还有需要添加的标签
-        if (!CollectionUtil.isEmpty(addTags)) {
-            // 添加剩余的标签
-            userMapper.addTags(userId, addTags);
+        // 获取用户已有标签
+        Set<String> existingTags = users.stream()
+                .flatMap(user -> user.getTags().stream().map(Tag::getTagName))
+                .collect(Collectors.toSet());
+        // 筛选需要添加的标签
+        List<String> tagsToAdd = addTags.stream()
+                .filter(tag -> !existingTags.contains(tag))
+                .collect(Collectors.toList());
+        // 添加标签
+        if (!CollectionUtil.isEmpty(tagsToAdd)) {
+            userMapper.addTags(userId, tagsToAdd);
         }
 
     }
@@ -106,28 +105,22 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void removeTags(Integer userId, List<String> removeTags) {
-        List<String> userTagList = new ArrayList<>();
+        // 查询用户
         List<User> users = userMapper.queryUserWithTagsById(userId);
         if (CollectionUtil.isEmpty(users)) {
             ThrowUtils.throwIf(true, ErrorCode.NOT_FOUND_ERROR, "该用户不存在");
         }
-        if (CollectionUtil.isEmpty(removeTags)) {
-            ThrowUtils.throwIf(true, ErrorCode.PARAMS_ERROR, "删除标签为空");
-        }
-        for (User u : users) {
-            Set<Tag> uTags = u.getTags();
-            if (CollectionUtil.isEmpty(uTags)) {
-                //ThrowUtils.throwIf(true, ErrorCode.PARAMS_ERROR, "用户没有标签");
-                logger.warn("用户没有标签，用户ID：" + userId);
-            } else {
-                userTagList.addAll(uTags.stream().map(Tag::getTagName).collect(Collectors.toList()));
-            }
-
-        }
-        Collection<String> inTag = CollectionUtil.intersection(userTagList, removeTags);
-        if (!CollectionUtil.isEmpty(inTag)) {
-            // 删除存在的标签
-            userMapper.removeTags(userId, (List<String>) inTag);
+        // 获取用户已有标签
+        Set<String> existingTags = users.stream()
+                .flatMap(user -> user.getTags().stream().map(Tag::getTagName))
+                .collect(Collectors.toSet());
+        // 筛选需要删除的标签
+        List<String> tagsToRemove = removeTags.stream()
+                .filter(existingTags::contains)
+                .collect(Collectors.toList());
+        // 删除标签
+        if (!CollectionUtil.isEmpty(tagsToRemove)) {
+            userMapper.removeTags(userId, tagsToRemove);
         }
     }
 
