@@ -116,9 +116,9 @@
     <insert id="addTags">
         insert into user_tag(user_id,tag_id)
         values
-        <foreach collection="addTags" index="index" item="#{tagName}" separator=",">
+        <foreach collection="addTags" index="index" item="tagName" separator=",">
             (#{userId},
-            (select id as tag_id from tag where tag_name= #{#{tagName}})
+            (select id as tag_id from tag where tag_name= #{tagName})
             )
         </foreach>
     </insert>

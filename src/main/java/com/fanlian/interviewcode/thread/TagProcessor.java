@@ -31,7 +31,7 @@ public class TagProcessor {
             Runnable task = new TagTask(userService, userId, addTags, removeTags);
             executorService.submit(task);
         }
-        executorService.shutdown();
+       // executorService.shutdown();
     }
 
 }

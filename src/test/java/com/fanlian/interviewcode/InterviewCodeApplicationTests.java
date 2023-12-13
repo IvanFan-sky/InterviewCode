@@ -132,10 +132,9 @@ class InterviewCodeApplicationTests {
     void test5() {
         Integer[] addUserIds = {1, 2, 3, 4, 5, 6, 7, 8, 9};
         List<String> tagNames = new ArrayList<>();
-        tagNames.add("广西");
-        tagNames.add("新增");
+        tagNames.add("数码");
         for (Integer userId:addUserIds) {
-            userService.addTags(userId,tagNames);
+            userService.removeTags(userId,tagNames);
         }
 
 
