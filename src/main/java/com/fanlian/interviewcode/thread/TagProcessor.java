@@ -29,7 +29,6 @@ public class TagProcessor {
     public void processTag(List<Integer> userIds, List<String> addTags, List<String> removeTags) {
         for (Integer userId : userIds) {
             Runnable task = new TagTask(userService, userId, addTags, removeTags);
-
             executorService.submit(task);
         }
         executorService.shutdown();
