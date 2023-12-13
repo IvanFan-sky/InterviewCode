@@ -66,6 +66,11 @@ public class UserController {
     }
 
 
+    /**
+     * 多现程批量添加用户标签和移除标签
+     * @param usersAndTags
+     * @return
+     */
     @PostMapping("/addBatchesTagForUser")
     public BaseResponse<String> addBatchesTagForUser(@RequestBody UsersAndTags usersAndTags) {
         List<String> addTags = usersAndTags.getAddTags();
