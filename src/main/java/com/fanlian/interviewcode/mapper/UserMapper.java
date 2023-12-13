@@ -16,6 +16,7 @@ public interface UserMapper {
     int deleteByPrimaryKey(Integer userId);
 
     int insert(User user);
+
     int add(User user);
 
     int insertSelective(User record);
@@ -41,4 +42,8 @@ public interface UserMapper {
 
     List<User> queryUserWithTagAll();
 
+
+    List<User> queryUserByTagFilter(@Param("allMatch") List<String> allMatch,
+                              @Param("anyMatch") List<String> anyMatch,
+                              @Param("notMatch") List<String> notMatch);
 }

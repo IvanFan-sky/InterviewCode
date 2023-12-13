@@ -3,13 +3,14 @@ package com.fanlian.interviewcode.controller;
 import com.fanlian.interviewcode.common.BaseResponse;
 import com.fanlian.interviewcode.common.ErrorCode;
 import com.fanlian.interviewcode.common.ResultUtils;
+import com.fanlian.interviewcode.dto.UserFilter;
 import com.fanlian.interviewcode.dto.UsersAndTags;
 import com.fanlian.interviewcode.exception.ThrowUtils;
-import com.fanlian.interviewcode.model.Tag;
 import com.fanlian.interviewcode.model.User;
 import com.fanlian.interviewcode.service.TagService;
 import com.fanlian.interviewcode.service.UserService;
 import com.fanlian.interviewcode.thread.TagProcessor;
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +45,7 @@ public class UserController {
         log.info("application 执行了........");
         ArrayList<String> tags = new ArrayList<>();
         tags.add("沿海");
-        userService.removeTags(3,tags);
+        userService.removeTags(3, tags);
         return "hello world!";
     }
 
@@ -70,7 +71,7 @@ public class UserController {
         List<String> addTags = usersAndTags.getAddTags();
         List<String> removeTags = usersAndTags.getRemoveTags();
         List<Integer> userIds = usersAndTags.getUserIds();
-        tagProcessor.processTag(userIds, addTags,removeTags);
+        tagProcessor.processTag(userIds, addTags, removeTags);
         return ResultUtils.success("成功");
     }
 
@@ -89,6 +90,17 @@ public class UserController {
         System.out.println("当前页面记录数量: " + pageInfo.getSize());
         List<User> list = pageInfo.getList();
         return ResultUtils.success(list);
+    }
+
+    /**
+     * 通过标签条件查询用户列表，并对结果进行分页返回
+     * @param userFilter
+     * @return users
+     */
+    @RequestMapping("/queryUserByTageFilterPage")
+    public BaseResponse<PageInfo<User>> queryUserByTageFilterPage(@RequestBody UserFilter userFilter) {
+        PageInfo<User> userPageIno = userService.queryUserByTageFilter(userFilter);
+        return ResultUtils.success(userPageIno);
     }
 
 
