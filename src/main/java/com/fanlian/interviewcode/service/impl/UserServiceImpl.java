@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.fanlian.interviewcode.common.ErrorCode;
 
 import com.fanlian.interviewcode.dto.UserFilter;
+import com.fanlian.interviewcode.exception.BusinessException;
 import com.fanlian.interviewcode.exception.ThrowUtils;
 import com.fanlian.interviewcode.mapper.TagMapper;
 import com.fanlian.interviewcode.mapper.UserMapper;
@@ -65,34 +66,41 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void addTags(Integer userId, List<String> addTags) {
+    public Integer addTags(Integer userId, List<String> addTags) {
         // 查询用户
         List<User> users = userMapper.queryUserWithTagsById(userId);
         if (CollectionUtil.isEmpty(users)) {
-            ThrowUtils.throwIf(true, ErrorCode.NOT_FOUND_ERROR, "该用户不存在");
+            logger.error("用户不存在");
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"用户不存在");
         }
         // 获取用户已有标签
         Set<String> existingTags = users.stream()
                 .flatMap(user -> user.getTags().stream().map(Tag::getTagName))
                 .collect(Collectors.toSet());
+        Integer count = 0;
         // 筛选需要添加的标签
         List<String> tagsToAdd = addTags.stream()
                 .filter(tag -> !existingTags.contains(tag))
                 .collect(Collectors.toList());
-        // 添加标签
-        if (!CollectionUtil.isEmpty(tagsToAdd)) {
-            userMapper.addTags(userId, tagsToAdd);
-        }
 
+        //加同步锁保证线程安全
+        synchronized (this) {
+            // 添加标签
+            if (!CollectionUtil.isEmpty(tagsToAdd)) {
+                count = userMapper.addTags(userId, tagsToAdd);
+            }
+        }
+        return count;
     }
 
     @Override
     @Transactional
-    public void removeTags(Integer userId, List<String> removeTags) {
+    public Integer removeTags(Integer userId, List<String> removeTags) {
         // 查询用户
         List<User> users = userMapper.queryUserWithTagsById(userId);
         if (CollectionUtil.isEmpty(users)) {
-            ThrowUtils.throwIf(true, ErrorCode.NOT_FOUND_ERROR, "该用户不存在");
+            logger.error("用户不存在");
+           throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"用户不存在");
         }
         // 获取用户已有标签
         Set<String> existingTags = users.stream()
@@ -102,10 +110,15 @@ public class UserServiceImpl implements UserService {
         List<String> tagsToRemove = removeTags.stream()
                 .filter(existingTags::contains)
                 .collect(Collectors.toList());
-        // 删除标签
-        if (!CollectionUtil.isEmpty(tagsToRemove)) {
-            userMapper.removeTags(userId, tagsToRemove);
+        Integer count = 0;
+        //加同步锁保证线程安全
+        synchronized (this) {
+            // 删除标签
+            if (!CollectionUtil.isEmpty(tagsToRemove)) {
+                count = userMapper.removeTags(userId, tagsToRemove);
+            }
         }
+        return count;
     }
 
 //    /**
@@ -130,6 +143,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * java实现查询过滤 1.4s
+     *
      * @param userFilter
      * @return
      */

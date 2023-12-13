@@ -22,10 +22,9 @@ public interface UserService {
 
     List<User> getAllUsersWithTags();
 
-    void addTags(Integer userId, List<String> addTags);
+    Integer addTags(Integer userId, List<String> addTags);
 
-    void removeTags(Integer userId, List<String> removeTags);
-
+    Integer removeTags(Integer userId, List<String> removeTags);
 
 
     PageInfo<User> queryUserByTageFilter(UserFilter userFilter);

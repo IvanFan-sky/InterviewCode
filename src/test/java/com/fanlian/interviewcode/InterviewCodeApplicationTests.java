@@ -6,6 +6,7 @@ import com.fanlian.interviewcode.mapper.UserMapper;
 import com.fanlian.interviewcode.model.Tag;
 import com.fanlian.interviewcode.model.User;
 import com.fanlian.interviewcode.service.UserService;
+import com.fanlian.interviewcode.thread.TagProcessor;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,8 @@ class InterviewCodeApplicationTests {
     @Autowired
     private TagMapper tagMapper;
 
+    @Autowired
+    private TagProcessor tagProcessor;
 
 
     @Test
@@ -118,7 +121,7 @@ class InterviewCodeApplicationTests {
     }
 
     @Test
-    void test4() {
+    void testQueryAll() {
         List<User> users = userMapper.queryAll();
         for (User u : users) {
             System.out.println("用户id为：" + u.getId() + "用户名：" + u.getUsername() + "密码：" + u.getPassword());
@@ -126,19 +129,48 @@ class InterviewCodeApplicationTests {
     }
 
     /**
-     * 测试多线程对用户进行批量添加标签以及移除标签
+     * 测试对用户进行批量添加标签
      */
     @Test
-    void test5() {
+    void testAddTags() {
         Integer[] addUserIds = {1, 2, 3, 4, 5, 6, 7, 8, 9};
         List<String> tagNames = new ArrayList<>();
         tagNames.add("数码");
-        for (Integer userId:addUserIds) {
-            userService.removeTags(userId,tagNames);
+        for (Integer userId : addUserIds) {
+            userService.addTags(userId, tagNames);
         }
 
 
     }
+
+    /**
+     * 测试对用户进行批量添加标签
+     */
+    @Test
+    void testRemoveTags() {
+        Integer[] addUserIds = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        List<String> tagNames = new ArrayList<>();
+        tagNames.add("数码");
+        for (Integer userId : addUserIds) {
+            userService.removeTags(userId, tagNames);
+        }
+
+
+    }
+
+    @Test
+    void testThreadUserByTags() {
+        Integer[] addUserIds = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        List<Integer> userIds = Arrays.asList(addUserIds);
+        List<String> addTags = new ArrayList<>();
+        addTags.add("数码");
+        addTags.add("活跃");
+        List<String> removeTags = new ArrayList<>();
+        removeTags.add("广西");
+        removeTags.add("广东");
+        tagProcessor.processTag(userIds,addTags,removeTags);
+    }
+
 
     /**
      * 添加标签 OK
@@ -186,12 +218,11 @@ class InterviewCodeApplicationTests {
      */
     @Test
     void test7() {
-        String[] tagNames = {"男性", "广西","新增"};
+        String[] tagNames = {"男性", "广西", "新增"};
         List<String> tagNameList = Arrays.asList(tagNames);
         Integer integer = userMapper.removeTags(1, tagNameList);
         System.out.println(integer);
     }
-
 
 
     /**
