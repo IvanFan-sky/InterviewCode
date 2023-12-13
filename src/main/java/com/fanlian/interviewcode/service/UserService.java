@@ -1,8 +1,8 @@
 package com.fanlian.interviewcode.service;
 
-import com.fanlian.interviewcode.dto.UsersAndTags;
-import com.fanlian.interviewcode.model.Tag;
+import com.fanlian.interviewcode.dto.UserFilter;
 import com.fanlian.interviewcode.model.User;
+import com.github.pagehelper.PageInfo;
 
 import java.util.List;
 
@@ -25,4 +25,8 @@ public interface UserService {
     void addTags(Integer userId, List<String> addTags);
 
     void removeTags(Integer userId, List<String> removeTags);
+
+
+
+    PageInfo<User> queryUserByTageFilter(UserFilter userFilter);
 }

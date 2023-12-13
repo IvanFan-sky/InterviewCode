@@ -1,10 +1,10 @@
 package com.fanlian.interviewcode.service.impl;
 
 
-
 import cn.hutool.core.collection.CollectionUtil;
 import com.fanlian.interviewcode.common.ErrorCode;
 
+import com.fanlian.interviewcode.dto.UserFilter;
 import com.fanlian.interviewcode.exception.ThrowUtils;
 import com.fanlian.interviewcode.mapper.TagMapper;
 import com.fanlian.interviewcode.mapper.UserMapper;
@@ -14,7 +14,9 @@ import com.fanlian.interviewcode.model.User;
 import com.fanlian.interviewcode.service.UserService;
 
 
-
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +24,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -42,32 +45,13 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper userMapper;
 
-    @Autowired
-    private TagMapper tagMapper;
-    @Autowired
-    private UserTagMapper userTagMapper;
-
-    private static final Logger logger = LoggerFactory.getLogger( UserServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
     public Integer addUser(User user) {
         return userMapper.insert(user);
     }
 
-
-//    @Override
-//    public void addBatchesTagForUser(UsersAndTags usersAndTags) {
-//        List<String> tags = usersAndTags.getTags();
-//        List<Integer> userIds = usersAndTags.getUserIds();
-//
-//        for (Integer userId : userIds) {
-//            User user = userMapper.getUserById(userId);
-//            if (BeanUtil.isEmpty(user)) {
-//                continue;
-//            }
-//
-//        }
-//    }
 
     @Override
     public List<User> getAllUsers() {
@@ -124,5 +108,73 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+//    /**
+//     * 使用Mybatis动态SQL对用户标签数据实现查询过滤逻辑 1.2s
+//     * @param userFilter
+//     * @return
+//     */
+//    @Override
+//    public PageInfo<User> queryUserByTageFilter(UserFilter userFilter) {
+//        // 校验 pageNum 和 pageSize 是否为空，为空则设置默认值
+//        Integer pageNum = (userFilter.getPageNum() != null && userFilter.getPageNum() > 0) ? userFilter.getPageNum() : 1;
+//         Integer pageSize = (userFilter.getPageSize() != null && userFilter.getPageSize() > 0) ? userFilter.getPageSize() : 10;
+//        List<String> allMatch = userFilter.getAllMatch();
+//        List<String> anyMatch = userFilter.getAnyMatch();
+//        List<String> notMatch = userFilter.getNotMatch();
+//        //开启分页
+//        PageHelper.startPage(pageNum, pageSize);
+//        List<User> users = userMapper.queryUserByTagFilter(allMatch, anyMatch, notMatch);
+//        // 返回整个 PageInfo 对象
+//        return new PageInfo<>(users);
+//    }
+
+    /**
+     * java实现查询过滤 1.4s
+     * @param userFilter
+     * @return
+     */
+    @Override
+    public PageInfo<User> queryUserByTageFilter(UserFilter userFilter) {
+        // 校验 pageNum 和 pageSize 是否为空，为空则设置默认值
+        int pageNum = (userFilter.getPageNum() != null && userFilter.getPageNum() > 0) ? userFilter.getPageNum() : 1;
+        int pageSize = (userFilter.getPageSize() != null && userFilter.getPageSize() > 0) ? userFilter.getPageSize() : 10;
+        //查询所有用户及关联标签数据
+        List<User> userList = userMapper.queryUserWithTagAll();
+        //开启分页
+        PageHelper.startPage(pageNum, pageSize);
+        List<User> userByTag = filterUserByTag(userList, userFilter);
+        //返回整个 PageInfo 对象
+        return new PageInfo<>(userByTag);
+    }
+
+    /**
+     * 实现根据标签条件过滤用户的逻辑
+     *
+     * @param users
+     * @param userFilter
+     * @return filteredUsers
+     */
+    private static List<User> filterUserByTag(List<User> users, UserFilter userFilter) {
+        List<User> filteredUsers = new ArrayList<>();
+        List<String> allMatch = userFilter.getAllMatch();
+        List<String> anyMatch = userFilter.getAnyMatch();
+        List<String> notMatch = userFilter.getNotMatch();
+
+        for (User user : users) {
+            List<String> tags = user.getTags().stream().map(Tag::getTagName).collect(Collectors.toList());
+            //1.查询结果的用户必须同时包含allMatch所有标签
+            boolean allMatchCondition = allMatch == null || allMatch.isEmpty() || new HashSet<>(tags).containsAll(allMatch);
+            //2.查询结果的用户必须含有anyMatch中任意一个标签
+            boolean anyMatchCondition = anyMatch == null || anyMatch.isEmpty() || tags.stream().anyMatch(anyMatch::contains);
+            //3.查询结果的用户必须不能含有nonMatch中任意一个标签
+            boolean notMatchCondition = notMatch == null || notMatch.isEmpty() || tags.stream().noneMatch(notMatch::contains);
+            //以上条件符合，将过滤后的用户添加进集合
+            if (allMatchCondition && anyMatchCondition && notMatchCondition) {
+                filteredUsers.add(user);
+            }
+        }
+
+        return filteredUsers;
+    }
 
 }
